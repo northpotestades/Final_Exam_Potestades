@@ -1,0 +1,31 @@
+---
+- name: Set Nagios variables
+  set_fact:
+    nagios_image: "{{ nagios.image }}"
+    nagios_container_name: "{{ nagios.container_name }}"
+    nagios_ports: "{{ nagios.ports }}"
+    nagios_restart: "{{ nagios.restart }}"
+
+- name: Pull Nagios Docker image
+  community.docker.docker_image:
+    name: "{{ nagios_image }}"
+    source: pull
+    docker_host: "unix:///var/run/docker.sock"
+    api_version: auto
+  become: yes
+  vars:
+    ansible_python_interpreter: /usr/bin/python3
+
+- name: Ensure Nagios container is running
+  community.docker.docker_container:
+    name: "{{ nagios_container_name }}"
+    image: "{{ nagios_image }}"
+    restart_policy: "{{ nagios_restart }}"
+    ports: "{{ nagios_ports }}"
+    state: started
+    recreate: true
+    docker_host: "unix:///var/run/docker.sock"
+    api_version: auto
+  become: yes
+  vars:
+    ansible_python_interpreter: /usr/bin/python3

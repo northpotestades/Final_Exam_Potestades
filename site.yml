@@ -1,0 +1,28 @@
+---
+- name: Install Docker & MOTD
+  hosts: all
+  become: yes
+  vars_files:
+    - config.yaml
+  roles:
+    - docker
+    - motd
+
+- name: Deploy Apache containers
+  hosts: all
+  become: yes
+  vars_files:
+    - config.yaml
+  roles:
+    - apache
+
+- name: Deploy Nagios (if enabled)
+  hosts: "{{ nagios.group }}"
+  become: yes
+  vars_files:
+    - config.yaml
+  tasks:
+    - name: Include Nagios role when enabled
+      include_role:
+        name: nagios
+      when: nagios.enabled
