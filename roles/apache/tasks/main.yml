@@ -1,0 +1,27 @@
+- name: Install Apache and dependencies on Ubuntu
+  apt:
+    name:
+      - apache2
+      - apache2-utils
+      - apache2-bin
+      - apache2-data
+    state: present
+    update_cache: yes
+  when: ansible_distribution == "Ubuntu"
+
+- name: Install Apache on CentOS
+  yum:
+    name: httpd
+    state: present
+  when: ansible_distribution == "CentOS"
+
+- name: Ensure Apache service is running and enabled
+  service:
+    name: "{{ 'apache2' if ansible_distribution == 'Ubuntu' else 'httpd' }}"
+    state: started
+    enabled: true
+
+- name: Deploy custom index.html
+  template:
+    src: index.html.j2
+    dest: "/var/www/html/index.html"

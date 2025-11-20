@@ -1,0 +1,79 @@
+- name: Set Nagios service and config directory
+  set_fact:
+    nagios_service: "{{ 'nagios4' if ansible_distribution == 'Ubuntu' else 'nagios' }}"
+    nagios_conf_dir: "{{ '/etc/nagios4' if ansible_distribution == 'Ubuntu' else '/etc/nagios' }}"
+
+- name: Install Nagios on Ubuntu (server)
+  apt:
+    name:
+      - nagios4
+      - nagios-plugins
+    state: present
+    update_cache: yes
+  when: ansible_distribution == "Ubuntu" and "'nagios_servers' in group_names"
+
+- name: Install Nagios on CentOS (server or client)
+  yum:
+    name:
+      - nagios
+      - nagios-plugins
+    state: present
+  when: ansible_distribution == "CentOS"
+
+- name: Ensure Nagios server directories exist
+  file:
+    path: "{{ nagios_conf_dir }}/servers"
+    state: directory
+    owner: nagios
+    group: nagios
+    mode: '0755'
+  when: "'nagios_servers' in group_names"
+
+- name: Deploy Nagios main configuration
+  template:
+    src: nagios.cfg.j2
+    dest: "{{ nagios_conf_dir }}/nagios.cfg"
+  when: "'nagios_servers' in group_names"
+
+- name: Add client hosts to Nagios configuration
+  lineinfile:
+    path: "{{ nagios_conf_dir }}/servers/hosts.cfg"
+    create: yes
+    line: |
+      define host {
+        use linux-server
+        host_name {{ item }}
+        address {{ item }}
+      }
+  loop: "{{ nagios.clients }}"
+  when: "'nagios_servers' in group_names"
+
+- name: Ensure Nagios service is running
+  service:
+    name: "{{ nagios_service }}"
+    state: started
+    enabled: true
+  when: "'nagios_servers' in group_names"
+
+- name: Enable Apache CGI module
+  ansible.builtin.command: a2enmod cgi
+  when: ansible_distribution == "Ubuntu" and "'nagios_servers' in group_names"
+  notify: Restart Apache
+
+- name: Enable Apache rewrite module
+  ansible.builtin.command: a2enmod rewrite
+  when: ansible_distribution == "Ubuntu" and "'nagios_servers' in group_names"
+  notify: Restart Apache
+
+- name: Create Nagios admin user
+  ansible.builtin.command: htpasswd -b -c /etc/nagios4/htpasswd.users nagiosadmin "{{ nagios_admin_password }}"
+  args:
+    creates: /etc/nagios4/htpasswd.users
+  when: ansible_distribution == "Ubuntu" and "'nagios_servers' in group_names"
+
+- name: Allow HTTP traffic in UFW (Ubuntu)
+  ufw:
+    rule: allow
+    port: 80
+    proto: tcp
+  when: ansible_distribution == "Ubuntu" and "'nagios_servers' in group_names"

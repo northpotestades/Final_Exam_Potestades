@@ -1,4 +1,11 @@
 [ubuntu]
 192.168.56.103
+
 [centos]
+192.168.56.104
+
+[nagios_servers]
+192.168.56.103
+
+[nagios_clients]
 192.168.56.104

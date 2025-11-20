@@ -1,0 +1,10 @@
+- name: Setup enterprise services and monitoring
+  hosts: all
+  become: true
+  vars_files:
+    - config.yaml
+
+  roles:
+    - apache
+    - nagios
+    - motd

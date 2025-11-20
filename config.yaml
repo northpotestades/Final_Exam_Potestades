@@ -1,1 +1,8 @@
 username: north
+apache:
+  port: 80
+nagios:
+  server: true
+  clients:
+    - 192.168.56.104
+nagios_admin_password: StrongPassword123
