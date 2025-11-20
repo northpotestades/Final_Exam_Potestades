@@ -1,0 +1,24 @@
+---
+- name: Build Apache image on control node
+  community.docker.docker_image:
+    build:
+      path: /home/north/Final_Exam_Potestades/Dockerfiles/apache
+      source: directory
+    name: ansible-apache
+    tag: latest
+  become: yes
+
+- name: Build Nagios image on control node
+  community.docker.docker_image:
+    build:
+      path: /home/north/Final_Exam_Potestades/Dockerfiles/nagios
+      source: directory
+    name: ansible-nagios
+    tag: latest
+  become: yes
+
+- name: Save Apache image to tar
+  command: docker save ansible-apache:latest -o /tmp/ansible-apache.tar
+
+- name: Save Nagios image to tar
+  command: docker save ansible-nagios:latest -o /tmp/ansible-nagios.tar

@@ -1,17 +1,1 @@
-username: "northpotestades"
-
-apache:
-  image: "httpd:2.4"
-  container_name: "ansible-apache"
-  ports:
-    - "80:80"
-  restart: "always"
-
-nagios:
-  enabled: true
-  group: "all"
-  image: "jasonrivers/nagios:latest"
-  container_name: "ansible-nagios"
-  ports:
-    - "8080:80"
-  restart: "always"
+username: north
